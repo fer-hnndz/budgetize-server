@@ -26,7 +26,7 @@ repos:
         language: system
         types: [python]
         args: [
-        "budgetize",
+        "budgetize_server",
         "--rcfile",
         ".pylintrc"  # Adjust the path if necessary, relative to the root of your repository
         ]
