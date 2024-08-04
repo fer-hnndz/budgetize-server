@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "budgetize-server"
+version = "0.1.0"
+description = "Budgetize's backend for backing up data and connecting with different APIs."
+authors = ["fer-hnndz <65425622+fer-hnndz@users.noreply.github.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+Flask = "^3.0.3"
+
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^3.8.0"
+black = "^24.8.0"
+mypy = "^1.11.1"
+pylint = "^3.2.6"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
