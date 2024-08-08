@@ -1,8 +1,10 @@
 """Budgetize API Routes"""
 
+from flask import redirect, request
 from google_auth_oauthlib.flow import Flow
-from flask import redirect, request, url_for, session
-from budgetize_server import app
+
+from budgetize_server import app, db
+from budgetize_server.orm.user import User
 
 # * ============== Drive ==================
 
@@ -65,3 +67,11 @@ def oauth_callback():
     #     "scopes": creds.scopes,
     # }
     # return session
+
+
+@app.route("/testdb", methods=["GET"])
+def test_db():
+    u = User(id="msg", preffered_currency="HNL", entered_on=0)
+    db.session.add(u)
+    db.session.commit()
+    return "200"
