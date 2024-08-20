@@ -6,6 +6,13 @@ from google_auth_oauthlib.flow import Flow
 from budgetize_server import app, db
 from budgetize_server.orm.user import User
 import asyncio
+import httpx
+from bs4 import BeautifulSoup
+from arrow import Arrow
+from datetime import timezone
+
+VALID_RATE_TIME = 7 * 24 * 60 * 60  # 1 week in seconds
+retrieved_rates = {}
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -20,6 +27,12 @@ def index():
 
 @app.route("/currency/<string:base>/<string:conversion>/<float:amount>")
 async def convert_currency(base: str, conversion: str, amount: float):
+    if base.upper() == conversion.upper():
+        return amount
+
+    if f"{base.upper()}-{conversion.upper()}" in retrieved_rates:
+        return retrieved_rates[f"{base.upper()}-{conversion.upper()}"]
+
     try:
         async with httpx.AsyncClient() as client:
             url = f"https://www.xe.com/currencyconverter/convert/?Amount={amount}&From={base.upper()}&To={conversion.upper()}"
@@ -49,7 +62,24 @@ async def convert_currency(base: str, conversion: str, amount: float):
             amount_of_zero = len(rate_p.split(".")[-1])
             digits_to_sum = ("0." + ("0" * amount_of_zero)) + digits_str
             rate = float(rate_p) + float(digits_to_sum)
-            return rate
+
+            key = f"{base.upper()}-{conversion.upper()}"
+            now = Arrow.now(tzinfo=timezone.utc)
+            if not key in retrieved_rates:
+                retrieved_rates[f"{base.upper()}-{conversion.upper()}"] = {
+                    "rate": rate,
+                    "retrieved_at": now.timestamp(),
+                }
+            elif (
+                now.timestamp()
+                >= retrieved_rates[key]["retrieved_at"] + VALID_RATE_TIME
+            ):
+                retrieved_rates[key] = {
+                    "rate": rate,
+                    "retrieved_at": now.timestamp(),
+                }
+
+            return retrieved_rates[key]
     except Exception as e:
         print(e)
         return "400"
