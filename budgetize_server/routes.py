@@ -5,73 +5,51 @@ from google_auth_oauthlib.flow import Flow
 
 from budgetize_server import app, db
 from budgetize_server.orm.user import User
-
-# * ============== Drive ==================
-
-SCOPES = [
-    "https://www.googleapis.com/auth/userinfo.email",
-    "https://www.googleapis.com/auth/drive.appdata",
-]
-REDIRECT_URI = "http://localhost:8080/oauthcallback"
-
-flow = Flow.from_client_secrets_file(
-    "credentials.json",
-    scopes=SCOPES,
-)
-flow.redirect_uri = REDIRECT_URI
-
-# Generate URL for request to Google's OAuth 2.0 server.
-authorization_url, state = flow.authorization_url(
-    access_type="offline",
-    # Optional, enable incremental authorization. Recommended as a best practice.
-    include_granted_scopes="true",
-    login_hint="hint@example.com",
-    prompt="select_account",
-)
+import asyncio
 
 
-# * ============== Routes ==================
 @app.route("/", methods=["GET", "POST"])
 def index():
     """Index route"""
 
-    print(request.headers)
     if request.method == "POST":
         return request.get_data()
 
     return {"message": "Hello, World!", "status": 200}
 
 
-@app.route("/authorize", methods=["GET"])
-def connect_drive():
-    """Endpoint to connect to Google Drive"""
-    return redirect(authorization_url)
+@app.route("/currency/<string:base>/<string:conversion>/<float:amount>")
+async def convert_currency(base: str, conversion: str, amount: float):
+    try:
+        async with httpx.AsyncClient() as client:
+            url = f"https://www.xe.com/currencyconverter/convert/?Amount={amount}&From={base.upper()}&To={conversion.upper()}"
+            r = await client.get(url, timeout=8)
 
+            soup = BeautifulSoup(r.text, "html.parser")
 
-@app.route("/oauthcallback", methods=["GET"])
-def oauth_callback():
-    return 200
+            main_element = soup.find("main")
+            if not main_element:
+                raise Exception("Could not find main element in response html.")
 
-    # TODO: Store credentials in session
-    # auth_response = request.url
-    # print("Auth Response: ", auth_response)
-    # flow.fetch_token(authorization_url=auth_response)
+            digits_span = soup.find("span", class_="faded-digits")
 
-    # creds = flow.credentials
-    # session["credentials"] = {
-    #     "token": creds.token,
-    #     "refresh_token": creds.refresh_token,
-    #     "token_uri": creds.token_uri,
-    #     "client_id": creds.client_id,
-    #     "client_secret": creds.client_secret,
-    #     "scopes": creds.scopes,
-    # }
-    # return session
+            if digits_span is None:
+                raise Exception(
+                    "Could not scrape exchange rate. Please look at last_html_response.html in Budgetize's folder"
+                )
 
+            digits_str: str = digits_span.get_text().replace(",", "")
+            parent_div = digits_span.parent  # type:ignore
 
-@app.route("/testdb", methods=["GET"])
-def test_db():
-    u = User(id="msg", preffered_currency="HNL", entered_on=0)
-    db.session.add(u)
-    db.session.commit()
-    return "200"
+            # Get first element of the iterator
+            for child in parent_div.children:  # type:ignore
+                rate_p = str(child).replace(",", "")
+                break
+
+            amount_of_zero = len(rate_p.split(".")[-1])
+            digits_to_sum = ("0." + ("0" * amount_of_zero)) + digits_str
+            rate = float(rate_p) + float(digits_to_sum)
+            return rate
+    except Exception as e:
+        print(e)
+        return "400"
