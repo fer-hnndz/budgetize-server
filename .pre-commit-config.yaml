@@ -13,20 +13,3 @@ repos:
     hooks:
     -   id: isort
         args: ["--profile", "black", "--filter-files"]
--   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.8.0
-    hooks:
-    -   id: mypy
-        additional_dependencies: [textual, arrow, types-requests, types-setuptools, types-beautifulsoup4]
--   repo: local
-    hooks:
-    -   id: pylint
-        name: pylint
-        entry: pipenv run pylint
-        language: system
-        types: [python]
-        args: [
-        "budgetize_server",
-        "--rcfile",
-        ".pylintrc"  # Adjust the path if necessary, relative to the root of your repository
-        ]

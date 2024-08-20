@@ -1,17 +1,20 @@
 """Budgetize API Routes"""
 
+import asyncio
+from datetime import timezone
+
+import httpx
+from arrow import Arrow
+from bs4 import BeautifulSoup
 from flask import redirect, request
 from google_auth_oauthlib.flow import Flow
 
 from budgetize_server import app, db
 from budgetize_server.orm.user import User
-import asyncio
-import httpx
-from bs4 import BeautifulSoup
-from arrow import Arrow
-from datetime import timezone
 
 VALID_RATE_TIME = 7 * 24 * 60 * 60  # 1 week in seconds
+
+# TODO: Implement cleanup
 retrieved_rates = {}
 
 
