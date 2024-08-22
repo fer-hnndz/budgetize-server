@@ -1,21 +1,26 @@
 """Budgetize API Routes"""
 
-import asyncio
 from datetime import timezone
 from traceback import print_exc
+from typing import TypedDict
 
 import httpx
 from arrow import Arrow
 from bs4 import BeautifulSoup
-from flask import redirect, request
+from flask import request
 
-from budgetize_server import app, db
-from budgetize_server.orm.user import User
+from budgetize_server import app
+
+
+class ExchangeData(TypedDict):
+    rate: float
+    retrieved_at: float
+
 
 VALID_RATE_TIME = 7 * 24 * 60 * 60  # 1 week in seconds
 
 # TODO: Implement cleanup
-retrieved_rates = {}
+retrieved_rates: dict[str, ExchangeData] = {}
 
 
 @app.route("/", methods=["GET", "POST"])

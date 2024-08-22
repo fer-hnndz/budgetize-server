@@ -10,10 +10,6 @@ package-mode = false
 [tool.poetry.dependencies]
 python = "^3.9"
 Flask = { extras = ["async"], version = "^3.0.3" }
-google-api-python-client = "^2.139.0"
-google-auth-httplib2 = "^0.2.0"
-google-auth-oauthlib = "^1.2.1"
-flask-sqlalchemy = "^3.1.1"
 arrow = "^1.3.0"
 httpx = "^0.27.0"
 beautifulsoup4 = "^4.12.3"
