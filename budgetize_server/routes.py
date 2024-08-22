@@ -2,12 +2,12 @@
 
 import asyncio
 from datetime import timezone
+from traceback import print_exc
 
 import httpx
 from arrow import Arrow
 from bs4 import BeautifulSoup
 from flask import redirect, request
-from google_auth_oauthlib.flow import Flow
 
 from budgetize_server import app, db
 from budgetize_server.orm.user import User
@@ -84,5 +84,6 @@ async def convert_currency(base: str, conversion: str, amount: float):
 
             return retrieved_rates[key]
     except Exception as e:
-        print(e)
+        print_exc()
+        print(r.text)
         return "400"
