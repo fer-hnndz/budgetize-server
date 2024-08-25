@@ -1,9 +1,6 @@
 """Budgetize API Routes"""
 
 import json
-import os
-from datetime import timezone
-from traceback import print_exc
 from typing import TypedDict
 
 import httpx
@@ -19,7 +16,6 @@ class LatestResponse(TypedDict):
     rates: dict[str, float]
 
 
-CURRENCY_API_KEY = os.environ.get("CURRENCY_API_KEY")
 LATEST_RESPONSE: LatestResponse = {}
 VALID_RATE_TIME = 7 * 24 * 60 * 60  # 1 week in seconds
 
@@ -35,14 +31,14 @@ def index():
 
 
 def get_exchange(base: str, conversion: str):
-    if not base in LATEST_RESPONSE["rates"]:
+    if not base.upper() in LATEST_RESPONSE["rates"]:
         return {"error": f"Base currency {base} not supported."}
 
-    if not conversion in LATEST_RESPONSE["rates"]:
+    if not conversion.upper() in LATEST_RESPONSE["rates"]:
         return {"error": f"Conversion currency {conversion} not supported."}
 
-    base_rate = LATEST_RESPONSE["rates"][base]
-    conversion_rate = LATEST_RESPONSE["rates"][conversion]
+    base_rate = LATEST_RESPONSE["rates"][base.upper()]
+    conversion_rate = LATEST_RESPONSE["rates"][conversion.upper()]
     return conversion_rate / base_rate
 
 
@@ -53,9 +49,11 @@ def convert_currency(base: str, conversion: str):
     if LATEST_RESPONSE:
         return {"rate": get_exchange(base, conversion)}
 
-    url = "https://api.exchangeratesapi.io/v1/latest"
-    r = httpx.get(url, params={"access_key": CURRENCY_API_KEY})
+    key = app.config["EXCHANGE_API_KEY"]
+    print("Requesting with key: ", key)
 
+    url = "https://api.exchangeratesapi.io/v1/latest"
+    r = httpx.get(url, params={"access_key": key})
     if r.status_code != 200:
         return {"error": "Could not retrieve exchange rates."}
 
