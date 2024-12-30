@@ -1,8 +1,13 @@
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
+from sqlmodel import SQLModel
+
+from budgetize_server.database import engine
 
 # Routers
-from .routers import currency
+from .routers import currency, user
+
+SQLModel.metadata.create_all(engine)
 
 app = FastAPI(
     title="Budgetize",
@@ -19,6 +24,7 @@ app.add_middleware(
 )
 
 app.include_router(currency.router)
+app.include_router(user.router)
 
 
 @app.get("/")
