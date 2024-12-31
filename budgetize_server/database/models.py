@@ -8,15 +8,14 @@ from sqlmodel import Field, Relationship, SQLModel
 
 class UserBase(SQLModel):
     email: str
-    provider_id: str
     name: str
     picture_url: str | None = None
 
 
 class User(UserBase, table=True):
     id_user: int = Field(primary_key=True)
-    main_currency: str = Field(max_length=3)
-    timezone: str = Field(default="UTC")
+    main_currency: str | None = Field(max_length=3)
+    timezone: str | None = Field(default="UTC")
     active: bool = Field(default=True)
 
 

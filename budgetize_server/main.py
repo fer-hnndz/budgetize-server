@@ -16,15 +16,17 @@ app = FastAPI(
     version="0.1.0",
 )
 
+
+app.include_router(currency.router)
+app.include_router(user.router)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_headers=["*"],
-    allow_credentials=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
 )
-
-app.include_router(currency.router)
-app.include_router(user.router)
 
 
 @app.get("/")
