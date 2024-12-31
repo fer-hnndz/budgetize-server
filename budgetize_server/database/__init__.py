@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 from sqlmodel import SQLModel, create_engine
 
-load_dotenv(dotenv_path="../.env")
+load_dotenv()
 
 DB_NAME = os.environ.get("DB_NAME", "")
 DB_HOST = os.environ.get("DB_HOST", "")

@@ -16,6 +16,8 @@ fastapi = { extras = ["standard"], version = "^0.115.6" }
 sqlmodel = "^0.0.22"
 pymysql = "^1.1.1"
 cryptography = "^44.0.0"
+google-auth = "^2.37.0"
+requests = "^2.32.3"
 
 
 [tool.poetry.group.dev.dependencies]

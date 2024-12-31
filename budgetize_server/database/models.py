@@ -7,17 +7,16 @@ from sqlmodel import Field, Relationship, SQLModel
 
 
 class UserBase(SQLModel):
-    id_user: int = Field(primary_key=True)
     email: str
     provider_id: str
     name: str
-    main_currency: str = Field(max_length=3)
-    timezone: str = Field(default="UTC")
+    picture_url: str | None = None
 
 
 class User(UserBase, table=True):
     id_user: int = Field(primary_key=True)
-    provider_id: str
+    main_currency: str = Field(max_length=3)
+    timezone: str = Field(default="UTC")
     active: bool = Field(default=True)
 
 
