@@ -21,15 +21,23 @@ async def user_general_info(token: str):
     """Returns the current dashboard data. Such as user's accounts and monthly balance."""
 
     user = await get_user_from_token(token, engine)
-    print("User obtained", user)
-
-    if not user.main_currency or not user.timezone:
-        return HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User's main currency or timezone not set.",
-        )
 
     with Session(engine) as session:
+        if not user.main_currency or not user.timezone:
+            return {
+                "user": models.UserBase(
+                    email=user.email,
+                    name=user.name,
+                    picture_url=user.picture_url,
+                    timezone=user.timezone,
+                ),
+                "currency": user.main_currency,
+                "accounts": [],
+                "monthly_balance": 0,
+                "monthly_income": 0,
+                "monthly_expense": 0,
+            }
+
         user_accounts = session.exec(
             select(models.Account)
             .where(models.Account.id_user == user.id_user)
@@ -79,11 +87,10 @@ async def user_general_info(token: str):
                 email=user.email,
                 name=user.name,
                 picture_url=user.picture_url,
-                main_currency=user.main_currency,
                 timezone=user.timezone,
             ),
-            "accounts": user_accounts,
             "currency": user.main_currency,
+            "accounts": user_accounts,
             "monthly_balance": monthly_balance,
             "monthly_income": monthly_income,
             "monthly_expense": monthly_expense,

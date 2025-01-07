@@ -17,7 +17,6 @@ async def index():
     """Returns all available currencies"""
     # Get an exchange to updatein case needed
 
-    print(mgr.rates)
     return mgr.rates
 
 
