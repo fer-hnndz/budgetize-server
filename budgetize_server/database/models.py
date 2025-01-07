@@ -25,7 +25,7 @@ class Account(SQLModel, table=True):
     name: str = Field(max_length=80)
     currency: str = Field(max_length=3)
     icon: str = Field(default="bank")
-    deleted: bool = Field(default=False)
+    active: bool = Field(default=True)
 
 
 class SharedAccountUser(SQLModel, table=True):
@@ -50,6 +50,11 @@ class Transaction(SQLModel, table=True):
     description: Optional[str] = Field(max_length=100)
     date: datetime
     deleted: bool = Field(default=False)
+
+    # * This represents if a transaction is taken into account for budget/monthly balance.
+    # * Transactions like transfers or initial balances are created with visible set to false
+    # * since those don't represent an expense or income.
+    visible: bool = Field(default=True)
 
 
 class Budget(SQLModel, table=True):

@@ -5,9 +5,10 @@ from dateutil.relativedelta import relativedelta
 from fastapi import APIRouter, HTTPException, status
 from sqlmodel import Session, select
 
-from budgetize_server.data_models import TokenBody
+from budgetize_server import data_models as bodies
+from budgetize_server.currency_manager import CurrencyManager
 from budgetize_server.database import engine, models
-from budgetize_server.utils import verify_google_token
+from budgetize_server.utils import get_user_from_token
 
 router = APIRouter(
     prefix="/users",
@@ -15,30 +16,24 @@ router = APIRouter(
 )
 
 
-@router.get("/{id_token}")
-async def get_current_user(id_token: str):
+@router.get("/{token}")
+async def user_general_info(token: str):
     """Returns the current dashboard data. Such as user's accounts and monthly balance."""
 
-    user_data = verify_google_token(id_token)
+    user = await get_user_from_token(token, engine)
+    print("User obtained", user)
 
-    if not user_data:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
+    if not user.main_currency or not user.timezone:
+        return HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User's main currency or timezone not set.",
         )
 
     with Session(engine) as session:
-        users = session.exec(
-            select(models.User).where(models.User.email == user_data.email)
-        ).first()
-
-        print("Users", users)
-        if not users:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
-            )
-
         user_accounts = session.exec(
-            select(models.Account).where(models.Account.id_user == users.id_user)
+            select(models.Account)
+            .where(models.Account.id_user == user.id_user)
+            .where(models.Account.active == True)
         ).all()
 
         # Retrieve all transactions from the current month
@@ -47,7 +42,7 @@ async def get_current_user(id_token: str):
 
         monthly_transactions = session.exec(
             select(models.Transaction)
-            .where(models.Transaction.id_user == users.id_user)
+            .where(models.Transaction.id_user == user.id_user)
             .where(models.Transaction.date >= start_of_month)
             .where(models.Transaction.date < end_of_month)
         ).all()
@@ -55,55 +50,56 @@ async def get_current_user(id_token: str):
         monthly_expense = 0.0
         monthly_income = 0.0
 
+        mgr = CurrencyManager()
         for transaction in monthly_transactions:
+
+            account = session.get(models.Account, transaction.id_account)
+
+            if not account:
+                return HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Account not found.",
+                )
+
+            currency = account.currency
+
+            convertedAmount = mgr.convert(
+                currency, user.main_currency, transaction.amount
+            )
+
             if transaction.amount < 0:
-                monthly_expense += transaction.amount
+                monthly_expense += convertedAmount
             else:
-                monthly_income += transaction.amount
+                monthly_income += convertedAmount
 
         monthly_balance = monthly_income + monthly_expense
 
         return {
-            "user": users,
+            "user": models.UserBase(
+                email=user.email,
+                name=user.name,
+                picture_url=user.picture_url,
+                main_currency=user.main_currency,
+                timezone=user.timezone,
+            ),
             "accounts": user_accounts,
-            "currency": users.main_currency,
+            "currency": user.main_currency,
             "monthly_balance": monthly_balance,
             "monthly_income": monthly_income,
             "monthly_expense": monthly_expense,
         }
 
 
-@router.post("/auth")
-async def auth_user(data: TokenBody):
-    """Allows User to authenticate themselves."""
-
-    print("recieved token: ", data)
-    user_data = verify_google_token(data.token)
-
-    if not user_data:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
-        )
+@router.put("/")
+async def user_setup(body: bodies.SetupBody):
+    """Sets up the user's main currency and timezone."""
+    user = await get_user_from_token(body.token_id, engine)
 
     with Session(engine) as session:
-        user = session.exec(
-            select(models.User).where(models.User.email == user_data.email)
-        ).first()
+        user.main_currency = body.main_currency
+        user.timezone = body.timezone
 
-        if not user:
-            user = models.User(
-                email=user_data.email,
-                name=user_data.name,
-                picture_url=user_data.picture_url,
-            )
-            session.add(user)
-            session.commit()
+        session.add(user)
+        session.commit()
 
-    out = {
-        "name": user_data.name,
-        "email": user_data.email,
-        "picture_url": user_data.picture_url,
-    }
-
-    print("Returning", out)
-    return out
+    return {"message": "User setup completed."}
