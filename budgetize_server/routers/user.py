@@ -14,6 +14,7 @@ router = APIRouter(
     prefix="/users",
     tags=["users"],
 )
+mgr = CurrencyManager()
 
 
 @router.get("/{token}")
@@ -58,7 +59,6 @@ async def user_general_info(token: str):
         monthly_expense = 0.0
         monthly_income = 0.0
 
-        mgr = CurrencyManager()
         for transaction in monthly_transactions:
 
             account = session.get(models.Account, transaction.id_account)

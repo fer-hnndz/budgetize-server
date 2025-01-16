@@ -72,4 +72,5 @@ class BudgetCategory(SQLModel, table=True):
 class Subscription(SQLModel, table=True):
     id_subscription: int = Field(primary_key=True)
     id_user: int = Field(foreign_key="user.id_user")
+    started: datetime
     ends: Optional[datetime]
