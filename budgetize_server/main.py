@@ -5,7 +5,7 @@ from sqlmodel import SQLModel
 from budgetize_server.database import engine
 
 # Routers
-from .routers import currency, user
+from .routers import account, currency, user
 
 SQLModel.metadata.create_all(engine)
 
@@ -19,6 +19,7 @@ app = FastAPI(
 
 app.include_router(currency.router)
 app.include_router(user.router)
+app.include_router(account.router)
 
 app.add_middleware(
     CORSMiddleware,

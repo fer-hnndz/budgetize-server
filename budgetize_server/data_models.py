@@ -11,3 +11,11 @@ class SetupBody(BaseModel):
     token_id: str
     main_currency: str
     timezone: str
+
+
+class AccountCreate(BaseModel):
+    user_token: str
+    name: str
+    currency: str
+    icon: str
+    initial_balance: float
