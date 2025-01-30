@@ -1,16 +1,15 @@
 services:
   db:
-    image: mysql:8.0
-    container_name: mysql-container
+    image: postgres:16
+    container_name: budgetize_db
     environment:
-      MYSQL_DATABASE: db
-      MYSQL_USER: fer
-      MYSQL_PASSWORD: password
-      MYSQL_ROOT_PASSWORD: root
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pass1234$
+      POSTGRES_DB: budgetize
     ports:
-      - "3306:3306"
+      - "8080:5432"
     volumes:
-      - budgetize_db:/var/lib/mysql
+      - budgetize_db:/var/lib/postgresql/data
 
 volumes:
   budgetize_db:

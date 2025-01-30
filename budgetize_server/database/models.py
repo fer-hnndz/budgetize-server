@@ -6,6 +6,35 @@ from sqlmodel import Field, Relationship, SQLModel
 # * Should find a way to separate all these models in separate files as this is not scalable.
 
 
+# This 3 models are used for next-auth integration.
+class Account(SQLModel):
+    id: int = Field(primary_key=True)
+    userId: int = Field(foreign_key="user.id_user")
+    type: str
+    provider: str
+    providerAccountId: str
+    refresh_token: str
+    access_token: str
+    expires_at: int
+    token_type: str
+    scope: str
+    id_token: str
+    session_state: str
+
+
+class Session(SQLModel):
+    id: int = Field(primary_key=True)
+    expires: datetime
+    sessionToken: str
+    userId: str
+
+
+class VerificationToken(SQLModel):
+    identifier: str
+    token: str
+    expires: datetime
+
+
 class UserBase(SQLModel):
     email: str
     name: str
@@ -19,7 +48,7 @@ class User(UserBase, table=True):
     active: bool = Field(default=True)
 
 
-class Account(SQLModel, table=True):
+class FinanceAccount(SQLModel, table=True):
     id_account: int = Field(primary_key=True)
     id_user: int = Field(foreign_key="user.id_user")
     name: str = Field(max_length=80)
@@ -28,10 +57,10 @@ class Account(SQLModel, table=True):
     active: bool = Field(default=True)
 
 
-class SharedAccountUser(SQLModel, table=True):
+class SharedFinanceAccount(SQLModel, table=True):
     id_account_user: int = Field(primary_key=True)
     id_user: int = Field(foreign_key="user.id_user")
-    id_account: int = Field(foreign_key="account.id_account")
+    id_account: int = Field(foreign_key="financeaccount.id_account")
     write: bool = Field(default=False)
 
 
@@ -43,7 +72,7 @@ class Category(SQLModel, table=True):
 
 class Transaction(SQLModel, table=True):
     id_transaction: int = Field(primary_key=True)
-    id_account: int = Field(foreign_key="account.id_account")
+    id_account: int = Field(foreign_key="financeaccount.id_account")
     id_user: int = Field(foreign_key="user.id_user")
     id_category: int = Field(foreign_key="category.id_category")
     amount: float

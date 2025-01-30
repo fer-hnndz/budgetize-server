@@ -14,10 +14,11 @@ httpx = "^0.27.0"
 python-dotenv = "^1.0.1"
 fastapi = { extras = ["standard"], version = "^0.115.6" }
 sqlmodel = "^0.0.22"
-pymysql = "^1.1.1"
 cryptography = "^44.0.0"
 google-auth = "^2.37.0"
 requests = "^2.32.3"
+sqlalchemy = "^2.0.37"
+psycopg2 = "^2.9.10"
 
 
 [tool.poetry.group.dev.dependencies]

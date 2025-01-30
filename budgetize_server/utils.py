@@ -1,4 +1,5 @@
 import os
+from traceback import print_exc
 from typing import Optional
 
 from fastapi import HTTPException, status
@@ -23,6 +24,7 @@ def _verify_google_token(token: str) -> Optional[models.UserBase]:
             token, requests.Request(), CLIENT_ID, clock_skew_in_seconds=60
         )
 
+        print(user_info)
         return models.UserBase(
             email=user_info["email"],
             name=user_info["name"],
@@ -30,7 +32,7 @@ def _verify_google_token(token: str) -> Optional[models.UserBase]:
             picture_url=user_info.get("picture"),
         )
     except Exception as e:
-        print(e)
+        print_exc()
         return None
 
 

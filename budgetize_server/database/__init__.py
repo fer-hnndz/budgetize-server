@@ -13,12 +13,12 @@ DB_PASSWORD = os.environ.get("DB_PASSWORD", "")
 IS_DEV = os.environ.get("DEV", False) == "True"
 print("Dev Mode?", IS_DEV)
 if IS_DEV:
-    DB_NAME = "db"
-    DB_HOST = "localhost:3306"
-    DB_USER = "fer"
-    DB_PASSWORD = "password"
+    DB_NAME = "budgetize"
+    DB_HOST = "localhost:8080"
+    DB_USER = "postgres"
+    DB_PASSWORD = "pass1234$"
 
-URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
+URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
 
 if IS_DEV:
     print("Connecting with URL", URL)
