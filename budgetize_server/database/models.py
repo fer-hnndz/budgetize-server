@@ -53,14 +53,14 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(nullable=False)
+    name: Mapped[Optional[str]] = mapped_column(nullable=True)
     email: Mapped[str] = mapped_column(nullable=False)
-    emailVerified: Mapped[bool] = mapped_column(default=False)
-    main_currency: Mapped[str] = mapped_column(String(3))
-    timezone: Mapped[str] = mapped_column(String(3))
+    emailVerified: Mapped[datetime] = mapped_column(default=False)
+    main_currency: Mapped[Optional[str]] = mapped_column(String(3), nullable=True)
+    timezone: Mapped[Optional[str]] = mapped_column(String(3), nullable=True)
 
-    active: Mapped[bool] = mapped_column(default=True)
-
+    active: Mapped[bool] = mapped_column(default=True, server_default="true")
+    image: Mapped[Optional[str]] = mapped_column(nullable=True)
     accounts: Mapped["FinanceAccount"] = relationship(back_populates="user")
 
 
@@ -112,7 +112,7 @@ class Transaction(Base):
     id_account: Mapped[int] = mapped_column(ForeignKey("finance_account.id"))
 
     amount: Mapped[float] = mapped_column(nullable=False)
-    description: Mapped[Optional[str]] = mapped_column(String(100))
+    description: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     date: Mapped[datetime] = mapped_column(nullable=False)
     deleted: Mapped[bool] = mapped_column(default=False)
 
