@@ -1,7 +1,9 @@
 import os
 
 from dotenv import load_dotenv
-from sqlmodel import SQLModel, create_engine
+from sqlalchemy import create_engine
+
+from budgetize_server.database.models import Base
 
 load_dotenv()
 
@@ -24,3 +26,4 @@ if IS_DEV:
     print("Connecting with URL", URL)
 
 engine = create_engine(URL)
+Base.metadata.create_all(engine)
