@@ -5,12 +5,15 @@ from pathlib import Path
 import arrow
 import httpx
 from arrow import Arrow
+from dotenv import load_dotenv
 
 EXCHANGE_API_URL = "https://api.exchangeratesapi.io/v1/latest"
 
+load_dotenv()
+
 
 class CurrencyManager:
-    rates: dict[str, float] = {}
+    _rates: dict[str, float] = {}
 
     def __init__(self) -> None:
         self._MAX_AGE = 7 * 24 * 60 * 60  # 1 week in seconds
@@ -41,7 +44,7 @@ class CurrencyManager:
             raise ConnectionError("Failed to fetch exchange rates from the API.")
 
         data = r.json()
-        self.rates = data["rates"]
+        self._rates = data["rates"]
         self.date_fetched = Arrow.utcnow()
 
         self._save_rates_to_file()
@@ -52,7 +55,7 @@ class CurrencyManager:
         """
         with self._data_file.open("w", encoding="utf-8") as f:
             json.dump(
-                {"rates": self.rates, "date_fetched": self.date_fetched.isoformat()}, f
+                {"rates": self._rates, "date_fetched": self.date_fetched.isoformat()}, f
             )
 
     def _load_or_update_rates(self):
@@ -63,12 +66,12 @@ class CurrencyManager:
         if self._data_file.exists():
             with self._data_file.open("r", encoding="utf-8") as f:
                 data = json.load(f)
-                self.rates = data.get("rates", {})
+                self._rates = data.get("rates", {})
                 self.date_fetched = arrow.get(data.get("date_fetched", ""))
 
                 print("[CurrencyManager] Loaded currencies from file.")
 
-            if not self.rates or self._is_data_expired():
+            if not self._rates or self._is_data_expired():
                 print("[CurrencyManager] Fetching latest rates... (expired or empty)")
                 self._fetch_latest_rates()
         else:
@@ -90,10 +93,17 @@ class CurrencyManager:
         if self._is_data_expired():
             self._fetch_latest_rates()
 
-        base_rate = self.rates.get(base.upper())
-        conversion_rate = self.rates.get(conversion.upper())
+        base_rate = self._rates.get(base.upper())
+        conversion_rate = self._rates.get(conversion.upper())
 
         if not base_rate or not conversion_rate:
             raise ValueError(f"{base} or {conversion} not supported.")
 
         return (amount / base_rate) * conversion_rate
+
+    @property
+    def rates(self) -> dict[str, float]:
+        if self._is_data_expired():
+            self._fetch_latest_rates()
+
+        return self._rates

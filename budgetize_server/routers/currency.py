@@ -1,10 +1,4 @@
-import json
-import os
-from typing import Optional, TypedDict
-
-import arrow
-import httpx
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 
 from budgetize_server.currency_manager import CurrencyManager
 
