@@ -1,6 +1,5 @@
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
-from sqlmodel import SQLModel
 
 # Routers
 from .routers import currency
